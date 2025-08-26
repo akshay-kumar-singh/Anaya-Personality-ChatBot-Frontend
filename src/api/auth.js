@@ -10,17 +10,19 @@ const AUTH_ENDPOINTS = {
 export const authAPI = {
   checkAuth: async () => {
     try {
-      const response = await fetch(AUTH_ENDPOINTS.ME, getFetchOptions());
+      const response = await fetch(
+        AUTH_ENDPOINTS.ME,
+        getFetchOptions("GET", null, true)
+      );
       if (response.ok) {
         return await response.json();
       }
       throw new Error("Not authenticated");
     } catch (error) {
       console.error("Auth check failed:", error);
-      // Clear any stale localStorage data if you're using it
       if (typeof localStorage !== "undefined") {
+        localStorage.removeItem("authToken");
         localStorage.removeItem("user");
-        localStorage.removeItem("token");
       }
       throw error;
     }
@@ -28,20 +30,25 @@ export const authAPI = {
 
   login: async (email, password) => {
     try {
-      if (typeof document !== "undefined") {
-        document.cookie =
-          "authToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      if (typeof localStorage !== "undefined") {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("user");
       }
 
       const response = await fetch(
         AUTH_ENDPOINTS.LOGIN,
-        getFetchOptions("POST", { email, password })
+        getFetchOptions("POST", { email, password }, false)
       );
 
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.error || "Login failed");
+      }
+
+      if (data.token && typeof localStorage !== "undefined") {
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
       }
 
       return data;
@@ -60,20 +67,25 @@ export const authAPI = {
 
   register: async (name, email, password) => {
     try {
-      if (typeof document !== "undefined") {
-        document.cookie =
-          "authToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      if (typeof localStorage !== "undefined") {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("user");
       }
 
       const response = await fetch(
         AUTH_ENDPOINTS.REGISTER,
-        getFetchOptions("POST", { name, email, password })
+        getFetchOptions("POST", { name, email, password }, false)
       );
 
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.error || "Registration failed");
+      }
+
+      if (data.token && typeof localStorage !== "undefined") {
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
       }
 
       return data;
@@ -92,26 +104,18 @@ export const authAPI = {
 
   logout: async () => {
     try {
-      await fetch(AUTH_ENDPOINTS.LOGOUT, getFetchOptions("POST"));
-
-      if (typeof document !== "undefined") {
-        document.cookie =
-          "authToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-      }
+      await fetch(AUTH_ENDPOINTS.LOGOUT, getFetchOptions("POST", null, true));
 
       if (typeof localStorage !== "undefined") {
+        localStorage.removeItem("authToken");
         localStorage.removeItem("user");
-        localStorage.removeItem("token");
       }
     } catch (error) {
       console.error("Logout error:", error);
-
-      if (typeof document !== "undefined") {
-        document.cookie =
-          "authToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      if (typeof localStorage !== "undefined") {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("user");
       }
-
-      throw error;
     }
   },
 };

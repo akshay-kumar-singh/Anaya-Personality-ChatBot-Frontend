@@ -1,4 +1,4 @@
-import { API_CONFIG } from "../api/config.js";
+import { API_CONFIG, getFetchOptions } from "../api/config.js";
 
 const AI_SERVICE_ENDPOINTS = {
   CHAT: `${API_CONFIG.BASE_URL}/ai/chat`,
@@ -9,12 +9,10 @@ const AI_SERVICE_ENDPOINTS = {
 export const aiService = {
   sendMessage: async (messages, context = {}) => {
     try {
-      const response = await fetch(AI_SERVICE_ENDPOINTS.CHAT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ messages, context }),
-      });
+      const response = await fetch(
+        AI_SERVICE_ENDPOINTS.CHAT,
+        getFetchOptions("POST", { messages, context })
+      );
 
       if (!response.ok) {
         throw new Error("Failed to get AI response");
@@ -33,16 +31,14 @@ export const aiService = {
     messageCount = 0
   ) => {
     try {
-      const response = await fetch(AI_SERVICE_ENDPOINTS.ANALYZE_PERSONALITY, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
+      const response = await fetch(
+        AI_SERVICE_ENDPOINTS.ANALYZE_PERSONALITY,
+        getFetchOptions("POST", {
           conversationHistory,
           conversationId,
           messageCount,
-        }),
-      });
+        })
+      );
 
       if (!response.ok) {
         throw new Error("Failed to analyze personality");
@@ -57,12 +53,10 @@ export const aiService = {
 
   generateQuestion: async (userMessage, conversationHistory) => {
     try {
-      const response = await fetch(AI_SERVICE_ENDPOINTS.GENERATE_QUESTION, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ userMessage, conversationHistory }),
-      });
+      const response = await fetch(
+        AI_SERVICE_ENDPOINTS.GENERATE_QUESTION,
+        getFetchOptions("POST", { userMessage, conversationHistory })
+      );
 
       if (!response.ok) {
         throw new Error("Failed to generate question");

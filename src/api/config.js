@@ -9,12 +9,25 @@ export const getHeaders = (includeAuth = false) => {
     "Content-Type": "application/json",
   };
 
+  if (includeAuth) {
+    const token =
+      typeof localStorage !== "undefined"
+        ? localStorage.getItem("authToken")
+        : null;
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+  }
+
   return headers;
 };
 
-export const getFetchOptions = (method = "GET", body = null) => ({
+export const getFetchOptions = (
+  method = "GET",
+  body = null,
+  includeAuth = true
+) => ({
   method,
-  headers: getHeaders(),
-  credentials: "include",
+  headers: getHeaders(includeAuth),
   ...(body && { body: JSON.stringify(body) }),
 });

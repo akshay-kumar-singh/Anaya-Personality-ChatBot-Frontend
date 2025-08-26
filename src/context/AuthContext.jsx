@@ -1,18 +1,24 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authAPI } from '../api/auth.js';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { authAPI } from "../api/auth.js";
 
 const AuthContext = createContext({});
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    if (typeof localStorage !== "undefined") {
+      const savedUser = localStorage.getItem("user");
+      return savedUser ? JSON.parse(savedUser) : null;
+    }
+    return null;
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -40,7 +46,7 @@ export const AuthProvider = ({ children }) => {
       setUser(data.user);
       return { success: true };
     } catch (error) {
-      const errorMsg = error.message || 'Network error. Please try again.';
+      const errorMsg = error.message || "Network error. Please try again.";
       setError(errorMsg);
       return { success: false, error: errorMsg };
     } finally {
@@ -57,7 +63,7 @@ export const AuthProvider = ({ children }) => {
       setUser(data.user);
       return { success: true };
     } catch (error) {
-      const errorMsg = error.message || 'Network error. Please try again.';
+      const errorMsg = error.message || "Network error. Please try again.";
       setError(errorMsg);
       return { success: false, error: errorMsg };
     } finally {
@@ -69,7 +75,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await authAPI.logout();
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     } finally {
       setUser(null);
       setError(null);
@@ -86,12 +92,8 @@ export const AuthProvider = ({ children }) => {
     loading,
     error,
     clearError,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
